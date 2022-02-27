@@ -7,5 +7,4 @@ int main() {
     z2 = (4 - a * a) / 2;
     printf("%lf\n%lf", z1, z2); 
     return 0;
-
 }
