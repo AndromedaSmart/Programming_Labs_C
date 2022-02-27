@@ -1,0 +1,32 @@
+#include <stdio.h>
+
+int main() {
+    int array[] = { 123, 123, 123, 123, 456, 321, 1 };
+    for (int i = 0; i < 7; i++) {
+        printf("%d%s\n", array[i], " ");
+    }
+
+    int array1[2][2] = { 1, 2, 3, 1 };
+
+    int array2[2][2] = { 1, 1, 0, 2 };
+
+    int array_result[2][2];
+
+    array_result[1][1] = array1[1][1] * array2[1][1] + array1[1][2] * array2[2][1];
+
+    array_result[1][2] = array1[1][1] * array2[1][2] + array1[1][2] * array2[2][2];
+
+    array_result[2][1] = array1[2][1] * array2[1][1] + array1[2][2] * array2[2][1];
+
+    array_result[2][2] = array1[2][1] * array2[1][2] + array1[2][2] * array2[2][2];
+
+    for (int i = 0; i < 2; i++) {
+
+        for (int j = 0; j < 2; j++)
+
+            printf("%d%s", array_result[i][j], " ");
+
+    }
+
+    return 0;
+}
