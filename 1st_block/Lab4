@@ -1,0 +1,17 @@
+#include <stdio.h>
+
+int main() {
+    int a, b, n;
+    scanf("%o\n", &a);
+    scanf("%o", &b); 
+    printf("\n16: %x\n", a); 
+
+    printf("8: %o\n", a); 
+    printf("<<3: %o\n", a << 3);
+
+    printf("8: %o\n", a); 
+    n = ~a; 
+    printf("~:%o\n", n);
+    printf("a and b:%o\n", a & b);
+    return 0;
+}
