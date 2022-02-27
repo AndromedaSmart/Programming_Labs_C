@@ -1,0 +1,89 @@
+#include <stdio.h>
+
+enum OS {
+
+    Symbian,
+
+    EmbeddedLinux,
+
+    WindowsCE,
+
+    VxWorks,
+
+    QNX
+
+}
+
+struct line {
+    int x0, x1;
+}
+
+int LengthLine(struct Line LenLine) {
+    return LenLine.x1 - LenLine.x0;
+}
+
+struct Printer {
+
+    unsigned char Ready : 1;
+
+    unsigned char LowToner : 1;
+
+    unsigned char NoPaper : 1;
+
+    unsigned char BrokenDrum : 1;
+
+
+}
+
+typedef union Printer2 {
+
+    struct Printer1;
+
+    unsigned char LazerPrinter;
+
+}
+
+int main() {
+
+    enum OS a = Symbian; 
+
+    printf("%d\n", a);
+
+    struct Line Line1 = { 1, 5 };
+    
+    printf("%d\n", LengthLine(Line1));
+
+    union Printer my_printer; 
+
+    scanf("%hx", & my_printer);
+
+    if (my_printer.Ready == 1) {
+        printf("Printer is ready\n");
+    }
+    else {
+        printf("Printer is not ready\n");
+    }
+
+    if (my_printer.LowToner == 1) {
+        printf(" Has toner \n");
+    }
+    else {
+        printf("Has not enough toner\n");
+    }
+    
+    if (my_printer.NoPaper == 1) {
+        printf("Has paper\n");
+    }
+    else {
+        printf("Not enough paper\n");
+    }
+    
+    if (my_printer.BrokenDrum == 1) {
+        printf("Drum is normal\n");
+    }
+    else {
+        printf("Drum is normal\n");
+    }
+    
+    return 0;
+}
