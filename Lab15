@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+struct file {
+    int nameSize;
+    char *name;
+    int dataSize;
+    char *data;
+};
+
+struct archive {
+    int fileCount;
+    struct file **files;
+};
+
+struct archive *readArchive(char *archName) {
+    FILE *input = fopen(archName, "r");
+    struct archive *arch = (struct archive *)malloc(sizeof(struct archive));
+    fread(&arch->fileCount, sizeof(int), 1, input);
+    arch->files = (struct file **)malloc(sizeof(struct file *) * arch->fileCount);
+    for (int i = 0; i < arch->fileCount; i++) {
+        arch->files[i] = (struct file *)malloc(sizeof(struct file));
+        fread(&arch->files[i]->nameSize, sizeof(int), 1, input);
+        arch->files[i]->name = (char *)malloc(sizeof(char) * arch->files[i]->nameSize);
+        fread(arch->files[i]->name, arch->files[i]->nameSize, 1, input);
+        fread(&arch->files[i]->dataSize, sizeof(arch->files[i]->dataSize), 1, input);
+        arch->files[i]->data = (char *)malloc(sizeof(char) * arch->files[i]->dataSize);
+        fread(arch->files[i]->data, arch->files[i]->dataSize, 1, input);
+    }
+    fclose(input);
+    return arch;
+}
+
+void list(char *archName) {
+    struct archive *arch = readArchive(archName);
+    for (int i = 0; i < arch->fileCount; i++) {
+        printf("%s ", arch->files[i]->name);
+    }
+    printf("\n");
+}
+
+void create(int fileCount, char **fileName, char *archName) {
+
+    struct archive *arch = (struct archive *)malloc(sizeof(struct archive));
+
+    arch->fileCount = fileCount;
+
+    arch->files = (struct file **)malloc(sizeof(struct file *) * fileCount);
+
+    for (int i = 0; i < fileCount; i++) {
+
+        arch->files[i] = (struct file *)malloc(sizeof(struct file));
+
+        arch->files[i]->nameSize = strlen(fileName[i]) + 1;
+
+        arch->files[i]->name = (char *)malloc(sizeof(char) * arch->files[i]->nameSize);
+
+        strcpy(arch->files[i]->name, fileName[i]);
+
+        FILE *input = fopen(fileName[i], "r");
+
+        fseek(input, 0, SEEK_END);
+
+        arch->files[i]->dataSize = ftell(input);
+
+        fseek(input, 0, SEEK_SET);
+
+        arch->files[i]->data = (char *)malloc(sizeof(char) * arch->files[i]->dataSize);
+
+        fread(arch->files[i]->data, arch->files[i]->dataSize, 1, input);
+
+        fclose(input);
+
+    }
+
+    FILE *output = fopen(archName, "w");
+
+    fwrite(&fileCount, sizeof(int), 1, output);
+
+    for (int i = 0; i < fileCount; i++) {
+
+        fwrite(&arch->files[i]->nameSize, sizeof(int), 1, output);
+
+        fwrite(arch->files[i]->name, arch->files[i]->nameSize, 1, output);
+
+        fwrite(&arch->files[i]->dataSize, sizeof(int), 1, output);
+
+        fwrite(arch->files[i]->data, arch->files[i]->dataSize, 1, output);
+
+    }
+
+    fclose(output);
+
+}
+
+void extract(char *archName) {
+
+    struct archive *arch = readArchive(archName);
+
+    for (int i = 0; i < arch->fileCount; i++) {
+
+        FILE *output = fopen(arch->files[i]->name, "w");
+
+        fwrite(arch->files[i]->data, arch->files[i]->dataSize, 1, output);
+
+        fclose(output);
+
+    }
+
+}
