@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <direct.h>
+
+typedef struct tagBMP {
+    int Height;
+    int Width;
+    int Size;
+} BMP;
+
+void RealisationNewGeneration (int **viability_point, int height, int width) {
+    int N;
+    int **vblt_pnt = (int **)malloc(sizeof(int *) * height);
+    for (int i = 0; i < height; i++)
+        vblt_pnt[i] = (int *)malloc(sizeof(int) * width);
+    int infinity_iteration = 0;
+    for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+            vblt_pnt[y][x] = viability_point[y][x];
+    int T1[8] = {0, 0, -1, -1, -1, 1, 1, 1};
+    int T2[8] = {1, -1, 1, 0, -1, 1, -1, 0};
+    for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++) {
+            N = 0;
+            for (int i = 0; i < 8; i++)
+                N += viability_point[(y + T1[i] + height) % height][(x + T2[i] + width) % width];
+            if (vblt_pnt[y][x] == 1) {
+                if ((N == 2) || (N == 3))
+                    vblt_pnt[y][x] = 1;
+                else
+                    vblt_pnt[y][x] = 0;
+            } else {
+                if (N == 3)
+                    vblt_pnt[y][x] = 1;
+                else
+                    vblt_pnt[y][x] = 0;
+            }
+        }
+    for (int i = 0; i < height; i++)
+        free(vblt_pnt[i]);
+    free(vblt_pnt);
+    if (infinity_iteration == height * width)
+        exit(0);
+}
+
+int main(int argc, char* argv[]) {
+    BMP Picture;
+    unsigned char header[54];
+    int max_iter = INT_MAX, dump_freq = 1;
+    char* dir_name = NULL;
+    FILE* file = NULL;
+
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp("--input", argv[i])) {
+            file = fopen(argv[i + 1], "r");
+            i++;
+        } else if (!strcmp("--output", argv[i])) {
+            dir_name = argv[i + 1]; _mkdir(dir_name);
+            i++; }
+        else if (!strcmp("--max_iter", argv[i])) {
+            max_iter = strtol(argv[i + 1], 0, 10);
+            i++;
+        } else if (!strcmp("--dump_freq", argv[i])) {
+            dump_freq = strtol(argv[i + 1], 0, 10);
+            i++; }
+    }
+    fread(header, sizeof(unsigned char), 54, file);
+    Picture.Height = header[25] * 256 * 256 * 256 + header[24] * 256 * 256 + header[23] * 256 + header[22];
+    Picture.Width = header[21] * 256 * 256 * 256 + header[20] * 256 * 256 + header[19] * 256 + header[18];
+    Picture.Size = header[5] * 256 * 256 * 256 + header[4] * 256 * 256 + header[3] * 256 + header[2];
+    unsigned char *byte = (unsigned char *)malloc((Picture.Size - 54) * sizeof(unsigned char));
+    fread(byte, sizeof(unsigned char), Picture.Size, file);
+
+    int **pict = (int **)malloc(Picture.Height * sizeof(int *));
+    for (int i = 0; i < Picture.Height; i++)
+        pict[i] = (int *)malloc(Picture.Width * sizeof(int));
+    int k = 0;
+    for (int i = Picture.Height - 1; i >= 0; i--)
+        for (int j = 0; j < Picture.Width; j++) {
+            if (byte[k] == 255)
+                pict[i][j] = 0;
+            else pict[i][j] = 1;
+            k += 3;
+        }
+    for (int l = 1; l <= max_iter; l++) {
+        RealisationNewGeneration(pict, Picture.Height, Picture.Width);
+        if (l % dump_freq != 0) continue;
+        char way_file[256];
+        char file_name[16];
+        strcpy(way_file, dir_name);
+        strcat(way_file, "\\");
+        strcat(way_file, _itoa(l, file_name, 10));
+        strcat(way_file, ".bmp");
+        FILE* viability_point = fopen(way_file, "w");
+
+        fwrite(header, 1, 54, viability_point);
+
+        int m = 0;
+        for (int i = Picture.Height - 1; i >= 0; i--)
+            for (int j = 0; j < Picture.Width; j++)
+                for (k = 0; k < 3; k++) {
+                    if (pict[i][j] == 1)
+                        byte[m] = 0;
+                    else
+                        byte[m] = 255;
+                    m++;
+                }
+        fwrite(byte, sizeof(unsigned char), Picture.Size, viability_point);
+                fclose(viability_point);
+    }
+    free(byte);
+    for (int i = 0; i < Picture.Height; i++)
+        free(pict[i]);
+    free(pict);
+
+    return 0;
+}
