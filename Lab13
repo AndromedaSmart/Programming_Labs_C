@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+struct ID3 {
+    char SIGN[3];
+    char TIT2[30];
+    char TIT1[30];
+    char TALB[30];
+    char TYER[5];
+    char COMM[30];
+};
+ // filepath=1.txt --show --get=TIT1 --set=TIT1 --value=123
+int main(int argc, char* argv[]){ // argc(целое число) - кол-во аргументов в командной строке, char* argv[](массив указателей на строки) - массив из строк, каждая из которых содержит аргумент
+    system("chcp 65001");
+    struct ID3 TAGS; // Объявление структуры
+    char* file_name = strpbrk(argv[1], "=") + 1; // Ищем символ "=", после берёт след. символ и начинает считывать название файла
+    FILE* song; // Создаём файловую переменную
+    song = fopen(file_name,"rb"); // Открываем файл для чтения в бинарном виде
+    fseek(song, -128 , SEEK_END); // Устанавливаем указатель на 128 байт с конца (SEEK_END - берём конец файла и идём на конец ИМЕННО файла)
+    fread(&TAGS, 128 , 1, song); // Считываем 128 байт с файла, один раз
+    fclose(song); // Закрываем файл
+
+    if (!strcmp("--show", argv[2])) { // Массив, начало со второго аргумента, если это "Show", то выполняем условие if
+        printf("\nНазвание - %s",TAGS.TIT2);
+        printf("\nИсполнитель - %s",TAGS.TIT1);
+        printf("\nАльбом - %s",TAGS.TALB);
+        printf("\nГод - %s",TAGS.TYER);
+        printf("\nОписание - %s",TAGS.COMM);
+    } else if (!strncmp("--get=", argv[2], 6)) { // Если второй аргумент "get", 6 - сравнение до 6-ого символа
+        char* tag = strpbrk(argv[2], "=") + 1; // то в Char* tag заносим название тэга и считываем инфу со след. символа
+
+        if ( !strcmp(tag, "TIT2"))
+            printf("Название - %s\n",TAGS.TIT2);
+
+        else if ( !strcmp(tag, "TIT1") )
+            printf("Исполнитель -  %s\n",TAGS.TIT1);
+
+        else if ( !strcmp(tag, "TALB") )
+            printf("Альбом -  %s\n",TAGS.TALB);
+
+        else if ( !strcmp(tag, "TYER") )
+            printf("Год -  %s\n",TAGS.TYER);
+
+        else if ( !strcmp(tag, "COMM") )
+            printf("Описание -  %s\n",TAGS.COMM);
+
+    } else if (!strncmp("--set=", argv[2], 6)) { // Если второй аргумент "set", 6 - сравнение до 6-ого символа
+        song = fopen(file_name,"ab+"); // Переменной "song" присваиваем открытие файла для редактирования в бинарном виде
+        char* tag = strpbrk(argv[2], "=") + 1; //в Char* tag заносим название тэга и считываем инфу со след. символа
+        if (!strncmp("--value=", argv[3], 8)) {
+            char* value = strpbrk(argv[3], "=") + 1;
+            if ( !strcmp(tag, "TIT2"))
+                memcpy(TAGS.TIT2, value, 30);
+
+            else if ( !strcmp(tag, "TIT1"))
+                memcpy(TAGS.TIT1, value, 30);
+
+            else if ( !strcmp(tag, "TALB"))
+                memcpy(TAGS.TALB, value, 30);
+
+            else if ( !strcmp(tag, "TYER"))
+                memcpy(TAGS.TYER, value, 5);
+
+            else if ( !strcmp(tag, "COMM"))
+                memcpy(TAGS.COMM, value, 30);
+            
+            char* c = (char* ) &TAGS; // Указатель на начало структуры
+            for (int i = 0; i < 128; i++)
+            {
+                putc(*c, song); // Выводим в файл байт, на который указывает c
+                c++; // переходим на след. ячейку памяти
+            }
+            fclose(song); // Закрываем файл
+        }
+    }
+    return 0;
+}
